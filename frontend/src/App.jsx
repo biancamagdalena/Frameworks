@@ -71,7 +71,7 @@ function Produtos({ produtos }) {
 
 
   // ETAPA 1 — Crie o estado "busca" iniciando com uma string vazia.
-  const[busca, seBusca] = useState("");
+  const[busca, setBusca] = useState("");
 
   // ETAPA 2 — Crie o estado "categoria" iniciando com "Todos".
   const [categoria, setCategoria] = useState("Todos")
@@ -83,17 +83,16 @@ function Produtos({ produtos }) {
   // - pesquisar pelo nome OU pela categoria;
   // - ignorar diferença entre letras maiúsculas e minúsculas;
   // - se a categoria for "Todos", aceitar qualquer categoria.
-  const produtosFiltrados = produtos.filter((produtos) => {
-    const texoBusca = busca.toLwerCase();
+  const produtosFiltrados = produtos.filter((produto) => {
+    const textoBusca = busca.toLowerCase();
     
     const correspondeBusca =
-     produto.nome.toLwerCase().includes(textoBusca) ||
-     (produto.categoria || "").toLweCase().includes(textoBusca);
+     produto.nome.toLowerCase().includes(textoBusca) ||
+     (produto.categoria || "").toLowerCase().includes(textoBusca);
     
    
    const correspondeCategoria =
-     categoria === "Todos" ||
-     produtos.categoria === categoria;
+     categoria === "Todos" || produto.categoria === categoria;
    
   
   return correspondeBusca && correspondeCategoria;
@@ -129,18 +128,40 @@ function Produtos({ produtos }) {
         <input
           className="search"
           placeholder="🔎 Buscar produto..."
+          value={busca}
+          onChange={(e) => setBusca(e.target.value)}
           /* ETAPA 6 — Ligue o input ao estado busca usando value e onChange. */
         />
       </div>
 
       <div className="filters">
         {/* ETAPA 7 — Complete os três botões para alterar a categoria. */}
-        <button>Todos</button>
-        <button>Informática</button>
-        <button>Eletrônicos</button>
+        <button
+          className={categoria === "Todos" ? "active" : ""}
+          onClick={() => setCategoria("Todos")}
+        >
+          Todos
+        </button>
+
+        <button
+          className={categoria === "Informática" ? "active" : ""}
+          onClick={() => setCategoria("Informática")}
+        >
+          Informática
+        </button>
+        <button
+          className={categoria === "Eletrônicos" ? "active" : ""}
+          onClick={() => setCategoria("Eletrônicos")}
+        >
+          Eletrônicos
+        </button>
 
         {/* ETAPA 8 — Ligue o select ao estado ordenacao usando value e onChange. */}
-        <select>
+        
+        <select
+          value={ordenacao}
+          onChange={(e) => setOrdenacao(e.target.value)}
+        >
           <option value="">Ordenar por</option>
           <option value="menor-preco">Menor preço</option>
           <option value="maior-preco">Maior preço</option>
@@ -149,7 +170,7 @@ function Produtos({ produtos }) {
 
       <div className="product-grid">
         {/* ETAPA 9 — Troque "produtos" pelo array final do filtro. */}
-        {produtos.map((produto) => (
+        {produtosExibidos.map((produto) => (
           <ProductCard
             key={produto._id || produto.id}
             produto={produto}
