@@ -66,59 +66,72 @@ function Home({ produtos }) {
 }
 
 function Produtos({ produtos }) {
-  // DESAFIO — FILTRO DE PRODUTOS
-  // Complete as etapas indicadas abaixo durante a aula.
 
+  // ETAPA 1 — Estado da busca
+  const [busca, setBusca] = useState("");
 
-  // ETAPA 1 — Crie o estado "busca" iniciando com uma string vazia.
-  const[busca, setBusca] = useState("");
+  const [categoria, setCategoria] = useState("Todos");
 
-  // ETAPA 2 — Crie o estado "categoria" iniciando com "Todos".
-  const [categoria, setCategoria] = useState("Todos")
-
-  // ETAPA 3 — Crie o estado "ordenacao" iniciando com uma string vazia.
   const [ordenacao, setOrdenacao] = useState("");
-  // ETAPA 4 — Crie "produtosFiltrados" usando produtos.filter().
-  // Regras:
-  // - pesquisar pelo nome OU pela categoria;
-  // - ignorar diferença entre letras maiúsculas e minúsculas;
-  // - se a categoria for "Todos", aceitar qualquer categoria.
+
+  const [paginaAtual, setPaginaAtual] = useState(1);
+  const produtosPorPagina = 6;
+
+  const indiceUltimoProduto =
+  paginaAtual * produtosPorPagina;
+
+const indicePrimeiroProduto =
+  indiceUltimoProduto - produtosPorPagina;
+
+
   const produtosFiltrados = produtos.filter((produto) => {
     const textoBusca = busca.toLowerCase();
-    
-    const correspondeBusca =
-     produto.nome.toLowerCase().includes(textoBusca) ||
-     (produto.categoria || "").toLowerCase().includes(textoBusca);
-    
-   
-   const correspondeCategoria =
-     categoria === "Todos" || produto.categoria === categoria;
-   
-  
-  return correspondeBusca && correspondeCategoria;
 
+    const correspondeBusca =
+      produto.nome.toLowerCase().includes(textoBusca) ||
+      (produto.categoria || "").toLowerCase().includes(textoBusca);
+
+    const correspondeCategoria =
+      categoria === "Todos" || produto.categoria === categoria;
+
+    return correspondeBusca && correspondeCategoria;
   });
 
-  // ETAPA 5 — Crie "produtosExibidos" a partir de produtosFiltrados.
-  // Use uma cópia do array e sort().
-  // "menor-preco" → menor para maior.
-  // "maior-preco" → maior para menor.
+
   const produtosExibidos = [...produtosFiltrados].sort((a, b) => {
-  if (ordenacao === "menor-preco") {
-    return a.preco - b.preco;
-  }
+    if (ordenacao === "menor-preco") {
+      return a.preco - b.preco;
+    }
 
-  if (ordenacao === "maior-preco") {
-    return b.preco - a.preco;
-  }
+    if (ordenacao === "maior-preco") {
+      return b.preco - a.preco;
+    }
 
-  return 0;
-});
-{/*Até aqui
-  */}
+    return 0;
+  });
+
+
+  const totalPaginas = Math.max(
+    1,
+    Math.ceil(produtosExibidos.length / produtosPorPagina)
+  );
+
+
+  const indiceInicial = (paginaAtual - 1) * produtosPorPagina;
+
+  const produtosDaPagina = produtosExibidos.slice(
+  indicePrimeiroProduto,
+  indiceUltimoProduto
+);
+
+
+  useEffect(() => {
+    setPaginaAtual(1);
+  }, [busca, categoria, ordenacao]);
 
   return (
     <section className="section">
+
       <div className="section-heading">
         <div>
           <span className="eyebrow">CATÁLOGO</span>
@@ -130,12 +143,11 @@ function Produtos({ produtos }) {
           placeholder="🔎 Buscar produto..."
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
-          /* ETAPA 6 — Ligue o input ao estado busca usando value e onChange. */
         />
       </div>
 
       <div className="filters">
-        {/* ETAPA 7 — Complete os três botões para alterar a categoria. */}
+
         <button
           className={categoria === "Todos" ? "active" : ""}
           onClick={() => setCategoria("Todos")}
@@ -149,6 +161,7 @@ function Produtos({ produtos }) {
         >
           Informática
         </button>
+
         <button
           className={categoria === "Eletrônicos" ? "active" : ""}
           onClick={() => setCategoria("Eletrônicos")}
@@ -156,8 +169,6 @@ function Produtos({ produtos }) {
           Eletrônicos
         </button>
 
-        {/* ETAPA 8 — Ligue o select ao estado ordenacao usando value e onChange. */}
-        
         <select
           value={ordenacao}
           onChange={(e) => setOrdenacao(e.target.value)}
@@ -166,17 +177,49 @@ function Produtos({ produtos }) {
           <option value="menor-preco">Menor preço</option>
           <option value="maior-preco">Maior preço</option>
         </select>
+
       </div>
 
-      <div className="product-grid">
-        {/* ETAPA 9 — Troque "produtos" pelo array final do filtro. */}
-        {produtosExibidos.map((produto) => (
-          <ProductCard
-            key={produto._id || produto.id}
-            produto={produto}
-          />
-        ))}
-      </div>
+
+      
+      {produtosExibidos.length === 0 && (
+        <div className="empty-result">
+          Nenhum produto encontrado com os filtros selecionados.
+        </div>
+      )}
+
+      {produtosExibidos.length > 0 && (
+        <>
+          <div className="product-grid">
+            {produtosDaPagina.map((produto) => (
+              <ProductCard
+                key={produto._id || produto.id}
+                produto={produto}
+              />
+            ))}
+          </div>
+
+          <div className="pagination">
+            <button
+              onClick={() => setPaginaAtual(paginaAtual - 1)}
+              disabled={paginaAtual === 1}
+            >
+              Anterior
+            </button>
+
+            <span>
+              Página {paginaAtual} de {totalPaginas}
+            </span>
+
+            <button
+              onClick={() => setPaginaAtual(paginaAtual + 1)}
+              disabled={paginaAtual === totalPaginas}
+            >
+              Próxima
+            </button>
+          </div>
+        </>
+      )}
     </section>
   );
 }

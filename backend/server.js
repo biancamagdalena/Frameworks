@@ -29,7 +29,7 @@ app.get("/", (req, res) => {
 
 app.get("/api/produtos", async (req, res) => {
   try {
-    const produtos = await Product.find({ ativo: true });
+    const produtos = await Product.find();
 
     res.json(produtos);
   } catch (erro) {
