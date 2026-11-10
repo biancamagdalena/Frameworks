@@ -1,6 +1,3 @@
-
-
-
 import { Link, Route, Routes, useNavigate, useParams } from "react-router-dom";
 import React, { useEffect, useState } from "react";
 
