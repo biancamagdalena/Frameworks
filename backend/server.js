@@ -1,8 +1,13 @@
+
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import Product from "./models/Product.js";
+// ETAPA 1 — Importe o modelo User e a biblioteca bcryptjs.
+// TODO ETAPA 1: escreva os dois imports aqui.
+import User from "./models/User.js";
+import bcrypt from "bcryptjs";
 
 dotenv.config();
 const app = express();
@@ -120,9 +125,54 @@ app.post("/api/auth/login", async (req, res) => {
   res.status(501).json({ erro: "Login ainda não implementado pelo aluno." });
 });
 
+// ETAPA 2 — Criar a rota POST /api/auth/register.
+// ETAPA 3 — Ler e validar nome, email e senha; impedir e-mail duplicado.
+// ETAPA 4 — Gerar hash da senha com bcryptjs e salvar usuário como cliente.
+// ETAPA 5 — Responder com status 201 e dados públicos, SEM devolver senha/hash.
+// TODO ETAPAS 2 A 5: substitua a rota provisória abaixo pela sua implementação.
 app.post("/api/auth/register", async (req, res) => {
-  res.status(501).json({ erro: "Cadastro ainda não implementado pelo aluno." });
+  res.status(501).json({ erro: "Cadastro ainda não ativado. Descomente a implementação." });
 });
+
+  app.post("/api/auth/register", async (req, res) => {
+    try {
+      const { nome, email, senha } = req.body;
+
+      //etapa 3 - validar os campos recebidos
+      if(!nome?.trim() || !email?.trim() || !senha?.trim() || typeof senha !== 'string') {
+        return res.status(400).json({ erro: "Informe nome, email e senha." });
+      }
+
+      if (senha.length < 6) {
+        return res.status(400).json({ erro: "A senha deve ter pelo menos 6 caracteres." });
+      }
+      const emailNormalizado = email.trim().toLowerCase();
+      const existente = await User.findOne({ email: emailNormalizado });
+      if (existente) {
+        return res.status(409).json({ erro: "E-mail já cadastrado." });
+      }
+  
+      //etapa 4 - nunca salvar senha em texto puro
+      const senhaHash = await bcrypt.hash(senha, 10);
+      const usuario = await User.create({
+        nome: nome.trim(), email: emailNormalizado, senha: senhaHash, perfil: "cliente"
+      });
+
+      //etapa 5 - nunca devolver senha/hash na resposta
+      return res.status(201).json({
+        mensagem: "Usuário cadastrado com sucesso.",
+        usuario: { id: usuario._id, nome: usuario.nome, email: usuario.email }
+      });
+    } catch (erro) {
+      if (erro.code === 11000) {
+        return res.status(409).json({ erro: "E-mail já cadastrado." });
+      }
+      console.error("Erro ao cadastrar usuário:", erro);
+      return res.status(500).json({ erro: "Erro ao cadastrar usuário." });
+    }
+  });
+
+
 
 app.post("/api/pedidos", async (req, res) => {
   res.status(501).json({ erro: "Pedidos ainda não implementados." });
@@ -131,4 +181,3 @@ app.post("/api/pedidos", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`SobrouVendi API: http://localhost:${PORT}`);
 });
-
